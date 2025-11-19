@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {listarTareas, crearTarea, actualizarTarea, eliminarTarea} = require('../controllers/taskController');
 const { listarCategorias, crearCategoria, eliminarCategoria } = require('../controllers/categoriaController');
-const { login } = require('../controllers/authController');
+const { login, register } = require('../controllers/authController');
 
 
 // Rutas legacy en inglés (compatibilidad)
@@ -24,5 +24,6 @@ router.delete('/categorias/:id', eliminarCategoria);
 
 // Auth
 router.post('/auth/login', login);
+router.post('/auth/register', register);
 
 module.exports = router;

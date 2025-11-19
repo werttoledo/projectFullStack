@@ -32,5 +32,5 @@ const rutas = require('./routes/index');
 app.use('/api', rutas);
 
 //3.App listen en el puerto definido
-app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));
+app.listen(PORT);
 

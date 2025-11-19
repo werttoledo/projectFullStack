@@ -19,7 +19,7 @@ export default function AuthGuard({ children }) {
     }
 
     // Rutas públicas que no requieren login
-    const publicPaths = ['/', '/login'];
+    const publicPaths = ['/', '/login', '/register'];
     
     // Si es la ruta de login, verificar si ya está logueado
     if (publicPaths.includes(pathname)) {

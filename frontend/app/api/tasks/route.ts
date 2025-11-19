@@ -5,16 +5,24 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/tasks`);
-    if (!response.ok) {
-      const errorData = await response.text();
+    const usuarioId = request.nextUrl.searchParams.get('usuario_id');
+    const categoriaId = request.nextUrl.searchParams.get('categoria_id');
+
+    if (!usuarioId) {
       return NextResponse.json(
-        { error: `Backend error: ${errorData}` },
-        { status: response.status }
+        { error: 'usuario_id es requerido' },
+        { status: 400 }
       );
     }
+
+    const params = new URLSearchParams({ usuario_id: usuarioId });
+    if (categoriaId) {
+      params.append('categoria_id', categoriaId);
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/tasks?${params.toString()}`);
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
@@ -29,8 +37,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('POST /api/tasks - body:', body);
-    
+
     const response = await fetch(`${BACKEND_URL}/api/tasks`, {
       method: 'POST',
       headers: {
@@ -38,18 +45,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify(body),
     });
-    
-    console.log('Backend response status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Backend error:', errorData);
-      return NextResponse.json(
-        { error: `Backend error: ${errorData}` },
-        { status: response.status }
-      );
-    }
-    
+
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {

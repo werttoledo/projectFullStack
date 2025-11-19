@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -48,6 +49,9 @@ export default function LoginPage() {
         <p className="text-sm font-semibold mb-2">Credenciales de ejemplo:</p>
         <p className="text-sm"><strong>Email:</strong> test@local</p>
         <p className="text-sm"><strong>Contraseña:</strong> 12345</p>
+        <p className="text-sm" style={{marginTop: '0.5rem'}}>
+          ¿Necesitas una cuenta? <Link href="/register">Regístrate aquí</Link>
+        </p>
       </div>
     </div>
   );

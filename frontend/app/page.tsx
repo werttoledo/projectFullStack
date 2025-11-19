@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { showToast } from './components/Toast';
 
 export default function LoginPage() {
@@ -70,6 +71,9 @@ export default function LoginPage() {
           <p className="credentials-title">Credenciales de ejemplo:</p>
           <p className="credentials-info"><strong>Email:</strong> test@local</p>
           <p className="credentials-info"><strong>Contraseña:</strong> 12345</p>
+          <p className="credentials-info" style={{ marginTop: '0.5rem' }}>
+            ¿Aún no tienes cuenta? <Link href="/register">Regístrate aquí</Link>
+          </p>
         </div>
       </div>
     </div>

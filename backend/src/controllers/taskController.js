@@ -11,27 +11,40 @@ const getUserById = async (id) => {
 // Lista de tareas  GET
 const listarTareas = async (req, res) => {
     try {
-        // Permitir filtrar por usuario_id: /tareas?usuario_id=1
         const { usuario_id, categoria_id } = req.query;
-        let query = 'SELECT t.* FROM tareas t';
-        const clauses = [];
-        const params = [];
-        if (usuario_id) {
-            params.push(usuario_id);
-            clauses.push(`t.usuario_id = $${params.length}`);
+
+        if (!usuario_id) {
+            return res.status(400).json({ error: 'usuario_id es requerido para listar tareas' });
         }
+
+        const usuarioIdNum = Number(usuario_id);
+        if (Number.isNaN(usuarioIdNum)) {
+            return res.status(400).json({ error: 'usuario_id debe ser un número válido' });
+        }
+
+        const owner = await getUserById(usuarioIdNum);
+        if (!owner) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        let query = 'SELECT t.* FROM tareas t WHERE t.usuario_id = $1';
+        const params = [usuarioIdNum];
+
         if (categoria_id) {
-            params.push(categoria_id);
-            clauses.push(`t.categoria_id = $${params.length}`);
+            const categoriaIdNum = Number(categoria_id);
+            if (Number.isNaN(categoriaIdNum)) {
+                return res.status(400).json({ error: 'categoria_id debe ser un número válido' });
+            }
+            params.push(categoriaIdNum);
+            query += ` AND t.categoria_id = $${params.length}`;
         }
-        if (clauses.length > 0) {
-            query += ' WHERE ' + clauses.join(' AND ');
-        }
+
         query += ' ORDER BY t.id ASC';
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error listar tareas:', error.message);
+        res.status(500).json({ error: 'Error interno al listar tareas' });
     }
 };
 
@@ -39,7 +52,6 @@ const listarTareas = async (req, res) => {
 const crearTarea = async (req, res) => {
     try {
         const { titulo, descripcion, categoria_id, usuario_id } = req.body;
-        console.log('Recibido:', { titulo, descripcion, categoria_id, usuario_id });
 
         // Validar campos requeridos
         if (!titulo || !descripcion) {
@@ -51,8 +63,18 @@ const crearTarea = async (req, res) => {
             return res.status(400).json({ error: 'usuario_id es requerido para crear la tarea' });
         }
 
+        const usuarioIdNum = Number(usuario_id);
+        if (Number.isNaN(usuarioIdNum)) {
+            return res.status(400).json({ error: 'usuario_id debe ser un número válido' });
+        }
+
+        const categoriaIdNum = categoria_id ? Number(categoria_id) : null;
+        if (categoria_id && Number.isNaN(categoriaIdNum)) {
+            return res.status(400).json({ error: 'categoria_id debe ser un número válido' });
+        }
+
         // Verificar que el usuario existe
-        const owner = await getUserById(usuario_id);
+        const owner = await getUserById(usuarioIdNum);
         if (!owner) {
             return res.status(400).json({ error: 'Usuario no encontrado' });
         }
@@ -61,14 +83,12 @@ const crearTarea = async (req, res) => {
         // Insertar la tarea con el usuario_id del usuario logueado
         const result = await pool.query(
             'INSERT INTO tareas (titulo, descripcion, categoria_id, usuario_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [titulo, descripcion, categoria_id || null, usuario_id]
+            [titulo, descripcion, categoriaIdNum, usuarioIdNum]
         );
-        
-        console.log('Tarea creada:', result.rows[0]);
         res.status(201).json({ message: 'Tarea creada exitosamente', task: result.rows[0] });
     } catch (error) {
-        console.error('Error al crear tarea:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Error al crear tarea:', error.message);
+        res.status(500).json({ error: 'Error interno al crear tarea' });
     }
 };
 // PUT -> Actualizar tarea
@@ -82,7 +102,12 @@ const actualizarTarea = async (req, res) => {
             return res.status(400).json({ error: 'usuario_id es requerido' });
         }
 
-        const requester = await getUserById(usuario_id);
+        const usuarioIdNum = Number(usuario_id);
+        if (Number.isNaN(usuarioIdNum)) {
+            return res.status(400).json({ error: 'usuario_id debe ser un número válido' });
+        }
+
+        const requester = await getUserById(usuarioIdNum);
         if (!requester) {
             return res.status(400).json({ error: 'Usuario no encontrado' });
         }
@@ -96,13 +121,18 @@ const actualizarTarea = async (req, res) => {
         const tarea = tareaRes.rows[0];
 
         // Solo el dueño de la tarea puede actualizarla (o admin)
-        if (tarea.usuario_id !== Number(usuario_id) && !requester.is_admin) {
+        if (tarea.usuario_id !== usuarioIdNum && !requester.is_admin) {
             return res.status(403).json({ error: 'Solo puedes actualizar tus propias tareas' });
+        }
+
+        const categoriaIdNum = categoria_id ? Number(categoria_id) : null;
+        if (categoria_id && Number.isNaN(categoriaIdNum)) {
+            return res.status(400).json({ error: 'categoria_id debe ser un número válido' });
         }
 
         const result = await pool.query(
             'UPDATE tareas SET titulo = $1, descripcion=$2, estado=$3, categoria_id=$4 WHERE id =$5 RETURNING *',
-            [titulo, descripcion, estado, categoria_id || null, id]
+            [titulo, descripcion, estado, categoriaIdNum, id]
         );
 
         if (result.rowCount === 0) {
@@ -112,7 +142,8 @@ const actualizarTarea = async (req, res) => {
         res.json({ message: 'Tarea actualizada exitosamente', task: result.rows[0] });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error actualizar tarea:', error.message);
+        res.status(500).json({ error: 'Error interno al actualizar tarea' });
     }
 };
 
@@ -157,8 +188,8 @@ const eliminarTarea = async (req, res) => {
       
       res.json({ message: 'Tarea eliminada correctamente' });
     } catch (error) {
-      console.error('Error eliminar tarea:', error);
-      res.status(500).json({ error: error.message || 'Error interno del servidor' });
+      console.error('Error eliminar tarea:', error.message);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
 
