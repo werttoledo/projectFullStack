@@ -89,3 +89,46 @@ npm install
 # Iniciar servidor de desarrollo
 npm run dev
 ```
+
+
+
+Setup rápido para el backend (Windows)
+
+Objetivo: crear el usuario/BD y la tabla necesarias para que la app funcione con las credenciales en `backend/.env`.
+
+1) Requisitos
+- PostgreSQL instalado (asegúrate de que `psql` esté en el PATH o conoce la ruta a `psql.exe`).
+
+2) Ejecutar los scripts (PowerShell)
+- Abre PowerShell en la carpeta `backend` del proyecto.
+- Ejecuta:
+
+```powershell
+# si psql está en PATH
+.\init_db.ps1
+
+# O ejecutar psql directamente (te pedirá la contraseña del usuario postgres)
+psql -U postgres -h localhost -p 5432 -f .\init_db.sql
+```
+
+3) Verificar
+- Inicia el backend:
+
+```powershell
+cd backend
+npm run dev
+```
+
+- En la consola deberías ver que el servidor arranca sin errores de autenticación. Luego prueba con curl:
+
+```powershell
+curl -X POST http://localhost:5000/api/tasks -H "Content-Type: application/json" -d '{"titulo":"Prueba","descripcion":"desde curl"}'
+```
+
+4) Qué hacer si no tienes la contraseña del superusuario `postgres`
+- Usa pgAdmin para crear un role `admin` y la base `taskhub` (GUI).
+- O cambia `backend/.env` para poner un usuario/contraseña existentes en tu PostgreSQL y reinicia el backend.
+
+Notas finales
+- Si tu PostgreSQL usa autenticación distinta (ident/peer), modifica `pg_hba.conf` para permitir md5 si deseas autenticación por contraseña.
+- Si quieres, puedo crear el role y la DB desde Node.js, pero eso requiere un usuario con permisos de superusuario disponible en `.env` (no recomendable en producción).

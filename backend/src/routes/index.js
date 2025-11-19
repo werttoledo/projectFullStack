@@ -1,15 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const {listarTareas, crearTarea, aactualizarTarea, eliminarTarea} = require('../controllers/tasKesController');
+const {listarTareas, crearTarea, actualizarTarea, eliminarTarea} = require('../controllers/taskController');
+const { listarCategorias, crearCategoria, eliminarCategoria } = require('../controllers/categoriaController');
+const { login } = require('../controllers/authController');
 
 
-// Definir rutas para las tareas
-// Ruta para el GET
+// Rutas legacy en inglés (compatibilidad)
 router.get('/tasks', listarTareas);
-// Ruta para el POST
 router.post('/tasks', crearTarea);
-// Ruta para el PUT
 router.put('/tasks/:id', actualizarTarea);
-// ruta para el DELETE
 router.delete('/tasks/:id', eliminarTarea);
+
+// Rutas en español solicitadas por el proyecto
+router.get('/tareas', listarTareas);
+router.post('/tareas', crearTarea);
+router.put('/tareas/:id', actualizarTarea);
+router.delete('/tareas/:id', eliminarTarea);
+
+// Rutas para categorias
+router.get('/categorias', listarCategorias);
+router.post('/categorias', crearCategoria);
+router.delete('/categorias/:id', eliminarCategoria);
+
+// Auth
+router.post('/auth/login', login);
+
 module.exports = router;
