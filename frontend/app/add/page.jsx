@@ -19,8 +19,8 @@ export default function AddTask(){
             return;
         }
 
-        // Cargar categorias
-        axios.get('/api/categorias')
+        // Cargar categorias del usuario
+        axios.get(`/api/categorias?usuario_id=${userId}`)
             .then(res => setCategorias(res.data))
             .catch(err => console.error('Error cargando categorias', err));
     }, [router]);

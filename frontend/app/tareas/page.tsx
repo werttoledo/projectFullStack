@@ -30,7 +30,7 @@ export default function TareasPage() {
     try {
       const uid = userId || localStorage.getItem('userId');
       if (!uid) return;
-      const catPromise = axios.get('/api/categorias');
+      const catPromise = axios.get(`/api/categorias?usuario_id=${uid}`);
       const tasksUrl = categoriaId ? `/api/tareas?usuario_id=${uid}&categoria_id=${categoriaId}` : `/api/tareas?usuario_id=${uid}`;
       const tasksPromise = axios.get(tasksUrl);
       const [tasksRes, catRes] = await Promise.all([tasksPromise, catPromise]);

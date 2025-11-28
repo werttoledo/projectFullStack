@@ -6,13 +6,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const url = new URL(request.url);
-    const requester_id = url.searchParams.get('requester_id');
+    const usuario_id = url.searchParams.get('usuario_id');
     
-    if (!requester_id) {
-      return NextResponse.json({ error: 'requester_id es requerido' }, { status: 400 });
+    if (!usuario_id) {
+      return NextResponse.json({ error: 'usuario_id es requerido' }, { status: 400 });
     }
     
-    const backendUrl = `${BACKEND_URL}/api/categorias/${id}?requester_id=${requester_id}`;
+    const backendUrl = `${BACKEND_URL}/api/categorias/${id}?usuario_id=${usuario_id}`;
     const response = await fetch(backendUrl, { method: 'DELETE' });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });

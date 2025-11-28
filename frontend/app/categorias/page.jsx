@@ -11,7 +11,9 @@ export default function CategoriasPage() {
   const [deleteCategoriaId, setDeleteCategoriaId] = useState(null);
 
   const fetchCategorias = () => {
-    axios.get('/api/categorias')
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+    axios.get(`/api/categorias?usuario_id=${userId}`)
       .then(res => setCategorias(res.data))
       .catch(err => console.error('Error cargando categorias', err));
   };
@@ -23,17 +25,12 @@ export default function CategoriasPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const isAdmin = localStorage.getItem('isAdmin') === '1';
-      const requester_id = Number(localStorage.getItem('userId'));
-      if (!requester_id) {
+      const usuario_id = Number(localStorage.getItem('userId'));
+      if (!usuario_id) {
         showToast('Debes iniciar sesión', 'error');
         return;
       }
-      if (!isAdmin) {
-        showToast('Solo administradores pueden crear categorías', 'error');
-        return;
-      }
-      const res = await axios.post('/api/categorias', { nombre, color, requester_id });
+      const res = await axios.post('/api/categorias', { nombre, color, usuario_id });
       showToast(res.data.message || 'Categoría creada exitosamente', 'success');
       setNombre('');
       setColor('#FFF9C4');
@@ -47,17 +44,12 @@ export default function CategoriasPage() {
 
   const handleDelete = async (id) => {
     try {
-      const isAdmin = localStorage.getItem('isAdmin') === '1';
-      const requester_id = Number(localStorage.getItem('userId'));
-      if (!requester_id) {
+      const usuario_id = Number(localStorage.getItem('userId'));
+      if (!usuario_id) {
         showToast('Debes iniciar sesión', 'error');
         return;
       }
-      if (!isAdmin) {
-        showToast('Solo administradores pueden eliminar categorías', 'error');
-        return;
-      }
-      const res = await axios.delete(`/api/categorias/${id}?requester_id=${requester_id}`);
+      const res = await axios.delete(`/api/categorias/${id}?usuario_id=${usuario_id}`);
       showToast(res.data.message || 'Categoría eliminada exitosamente', 'success');
       fetchCategorias();
     } catch (error) {
@@ -67,13 +59,13 @@ export default function CategoriasPage() {
     }
   };
 
-  const isAdmin = typeof window !== 'undefined' && localStorage.getItem('isAdmin') === '1';
+  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
   return (
     <div className="container">
-      <h2 className="text-2xl font-bold mb-4" style={{color: 'var(--foreground)'}}>Categorías</h2>
+      <h2 className="text-2xl font-bold mb-4" style={{color: 'var(--foreground)'}}>Mis Categorías</h2>
       
-      {isAdmin && (
+      {userId && (
         <form onSubmit={handleSubmit} className="login-form" style={{maxWidth: '500px', marginBottom: '2rem'}}>
           <div className="form-group">
             <label className="form-label">Nombre de la categoría</label>
@@ -102,12 +94,6 @@ export default function CategoriasPage() {
         </form>
       )}
 
-      {!isAdmin && (
-        <div style={{padding: '1rem', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid rgba(255, 193, 7, 0.3)'}}>
-          <p style={{color: 'var(--foreground)', margin: 0}}>Solo los administradores pueden crear y eliminar categorías.</p>
-        </div>
-      )}
-
       <div className="task-list">
         {categorias.length === 0 ? (
           <div style={{textAlign: 'center', padding: '2rem', color: 'var(--foreground)'}}>
@@ -133,15 +119,13 @@ export default function CategoriasPage() {
                   </div>
                 </div>
               </div>
-              {isAdmin && (
-                <button 
-                  onClick={() => setDeleteCategoriaId(c.id)} 
-                  className="btn-danger"
-                  style={{marginLeft: '1rem'}}
-                >
-                  Eliminar
-                </button>
-              )}
+              <button 
+                onClick={() => setDeleteCategoriaId(c.id)} 
+                className="btn-danger"
+                style={{marginLeft: '1rem'}}
+              >
+                Eliminar
+              </button>
             </div>
           ))
         )}
