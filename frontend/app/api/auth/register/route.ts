@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,12 +13,12 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('POST /api/auth/register error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error de conexión con el servidor'
-    }, { status: 500 });
+      error: error instanceof Error ? error.message : 'Error de conexión con el servidor'
+    }, { status: 503 });
   }
 }
 

@@ -34,8 +34,10 @@ export default function RegisterPage() {
       } else {
         showToast(response.data.error || "No se pudo crear el usuario", "error");
       }
-    } catch (error: any) {
-      const message = error.response?.data?.error || error.message || "Error al crear el usuario";
+    } catch (error: unknown) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error || error.message
+        : error instanceof Error ? error.message : "Error al crear el usuario";
       showToast(message, "error");
     } finally {
       setIsSubmitting(false);

@@ -8,6 +8,7 @@ export default function AuthGuard({ children }) {
   const router = useRouter();
   const hasRedirected = useRef(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     // Resetear el flag cuando cambia la ruta
     hasRedirected.current = false;
@@ -20,7 +21,7 @@ export default function AuthGuard({ children }) {
 
     // Rutas públicas que no requieren login
     const publicPaths = ['/', '/login', '/register'];
-    
+
     // Si es la ruta de login, verificar si ya está logueado
     if (publicPaths.includes(pathname)) {
       const userId = localStorage.getItem('userId');
@@ -47,7 +48,8 @@ export default function AuthGuard({ children }) {
 
     // Si todo está bien, permitir renderizar
     setIsLoading(false);
-  }, [pathname]); // Solo pathname como dependencia, no router
+  }, [pathname, router]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Si es la ruta de login (/ o /login), renderizar inmediatamente después de la verificación
   if (pathname === '/' || pathname === '/login') {

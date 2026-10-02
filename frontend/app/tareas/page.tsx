@@ -6,23 +6,33 @@ import EditTaskModal from '../components/EditTaskModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { showToast } from '../components/Toast';
 
-// Definimos la estructura del tipo de dato que esperamos
 interface Task {
   id: number;
   titulo: string;
+  descripcion: string | null;
+  estado?: boolean;
+  categoria_id?: number | null;
+}
+
+interface Category {
+  id: number;
+  nombre: string;
+}
+
+interface TaskFormData {
+  titulo: string;
   descripcion: string;
-  estado?: boolean
+  estado: boolean;
+  categoria_id: number | null;
 }
 
 export default function TareasPage() {
-  // useState con el tipo Task[]
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<Category[]>([]);
   const [filterCategoria, setFilterCategoria] = useState<number | null>(null);
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
 
   // Función reutilizable para cargar tareas y categorías
@@ -56,8 +66,6 @@ export default function TareasPage() {
     }
     
     // Si hay userId, cargar datos
-    const adminFlag = localStorage.getItem('isAdmin') === '1';
-    setIsAdmin(adminFlag);
     setIsChecking(false);
     fetchTasks(userId, filterCategoria);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,33 +88,41 @@ export default function TareasPage() {
       const res = await axios.delete(`/api/tareas/${id}?usuario_id=${userId}`);
       showToast(res.data.message || 'Tarea eliminada exitosamente', 'success');
       fetchTasks(userId, filterCategoria);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showToast('Error: ' + (err.response?.data?.error || err.message), 'error');
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error ? err.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 
-  const handleEdit = async (taskData: any) => {
+  const handleEdit = async (taskData: TaskFormData) => {
     try {
+      if (!editingTask) return;
+
       const userId = localStorage.getItem('userId');
       if (!userId) {
         router.replace('/');
         return;
       }
-      const payload = { 
-        titulo: taskData.titulo, 
-        descripcion: taskData.descripcion, 
-        estado: taskData.estado, 
-        categoria_id: taskData.categoria_id, 
-        usuario_id: Number(userId) 
+      const payload = {
+        titulo: taskData.titulo,
+        descripcion: taskData.descripcion,
+        estado: taskData.estado,
+        categoria_id: taskData.categoria_id,
+        usuario_id: Number(userId)
       };
       const res = await axios.put(`/api/tareas/${editingTask.id}`, payload);
       showToast(res.data.message || 'Tarea actualizada exitosamente', 'success');
       setEditingTask(null);
       fetchTasks(userId, filterCategoria);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showToast('Error: ' + (err.response?.data?.error || err.message), 'error');
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error ? err.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 
@@ -139,16 +155,16 @@ export default function TareasPage() {
 
       <div className="task-list">
         {
-          tasks.map((t: any) => (
+          tasks.map((t) => (
             <div key={t.id} className="task-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <div>
                 <div className="task-title">{t.titulo}</div>
-                <div className="task-desc">{t.descripcion}</div>
+                <div className="task-desc">{t.descripcion || 'Sin descripción'}</div>
               </div>
               <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                 {t.categoria_id && (
                   <span className="category-badge" style={{marginRight: '1rem'}}>
-                    { (categorias.find(c=>c.id === t.categoria_id)?.nombre) || 'Categoría' }
+                    {(categorias.find(c => c.id === t.categoria_id)?.nombre) || 'Categoría'}
                   </span>
                 )}
                 <div style={{display: 'flex', gap: '0.5rem'}}>
@@ -162,6 +178,7 @@ export default function TareasPage() {
       </div>
 
       <EditTaskModal
+        key={editingTask?.id ?? 'new-task'}
         task={editingTask}
         categorias={categorias}
         isOpen={!!editingTask}

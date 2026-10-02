@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) {
       showToast('Email y contraseña son requeridos', 'error');
@@ -32,9 +32,12 @@ export default function LoginPage() {
       } else {
         showToast('Error: ' + (res.data?.error || 'Credenciales inválidas'), 'error');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      showToast('Error: ' + (error.response?.data?.error || error.message), 'error');
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error || error.message
+        : error instanceof Error ? error.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 
