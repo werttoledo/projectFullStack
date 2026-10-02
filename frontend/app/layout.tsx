@@ -3,12 +3,10 @@ import {ReactNode, useEffect, useState} from "react";
 import "./globals.css";
 import AuthGuard from './components/AuthGuard';
 import ToastContainer from './components/Toast';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { showToast } from './components/Toast';
 
 export default function RootLayout({children}: {children:ReactNode}) {
-  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {

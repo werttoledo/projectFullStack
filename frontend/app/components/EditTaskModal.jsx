@@ -1,18 +1,10 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function EditTaskModal({ task, categorias, isOpen, onClose, onSave }) {
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [categoriaId, setCategoriaId] = useState('');
-
-  useEffect(() => {
-    if (task) {
-      setTitulo(task.titulo || '');
-      setDescripcion(task.descripcion || '');
-      setCategoriaId(task.categoria_id || '');
-    }
-  }, [task]);
+  const [titulo, setTitulo] = useState(task?.titulo || '');
+  const [descripcion, setDescripcion] = useState(task?.descripcion || '');
+  const [categoriaId, setCategoriaId] = useState(task?.categoria_id || '');
 
   if (!isOpen) return null;
 
@@ -132,4 +124,3 @@ export default function EditTaskModal({ task, categorias, isOpen, onClose, onSav
     </div>
   );
 }
-

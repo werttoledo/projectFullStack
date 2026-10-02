@@ -16,9 +16,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const response = await fetch(backendUrl, { method: 'DELETE' });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('DELETE /api/categorias/:id error:', error);
-    return NextResponse.json({ error: error.message || 'Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error' }, { status: 500 });
   }
 }
-

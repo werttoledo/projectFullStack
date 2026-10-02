@@ -32,9 +32,12 @@ export default function LoginPage() {
       } else {
         showToast('Error: ' + (res.data?.error || 'Credenciales inválidas'), 'error');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      showToast('Error: ' + (error.response?.data?.error || error.message), 'error');
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error || error.message
+        : error instanceof Error ? error.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 

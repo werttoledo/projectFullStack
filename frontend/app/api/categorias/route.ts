@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
     const response = await fetch(`${BACKEND_URL}/api/categorias?usuario_id=${usuario_id}`);
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GET /api/categorias error:', error);
-    return NextResponse.json({ error: error.message || 'Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error' }, { status: 500 });
   }
 }
 
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('POST /api/categorias error:', error);
-    return NextResponse.json({ error: error.message || 'Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error' }, { status: 500 });
   }
 }

@@ -13,11 +13,11 @@ export async function POST(request: NextRequest) {
     
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('POST /api/auth/login error:', error);
     return NextResponse.json({ 
       success: false,
-      error: error.message || 'Error de conexión con el servidor' 
-    }, { status: 500 });
+      error: 'No se pudo conectar con el servidor de autenticación'
+    }, { status: 503 });
   }
 }

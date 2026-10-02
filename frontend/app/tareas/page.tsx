@@ -10,19 +10,31 @@ import { showToast } from '../components/Toast';
 interface Task {
   id: number;
   titulo: string;
-  descripcion: string;
+  descripcion: string | null;
   estado?: boolean
+  categoria_id?: number | null;
+}
+
+interface Category {
+  id: number;
+  nombre: string;
+}
+
+interface TaskFormData {
+  titulo: string;
+  descripcion: string;
+  estado: boolean;
+  categoria_id: number | null;
 }
 
 export default function TareasPage() {
   // useState con el tipo Task[]
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<Category[]>([]);
   const [filterCategoria, setFilterCategoria] = useState<number | null>(null);
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
 
   // Función reutilizable para cargar tareas y categorías
@@ -56,8 +68,6 @@ export default function TareasPage() {
     }
     
     // Si hay userId, cargar datos
-    const adminFlag = localStorage.getItem('isAdmin') === '1';
-    setIsAdmin(adminFlag);
     setIsChecking(false);
     fetchTasks(userId, filterCategoria);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,13 +90,16 @@ export default function TareasPage() {
       const res = await axios.delete(`/api/tareas/${id}?usuario_id=${userId}`);
       showToast(res.data.message || 'Tarea eliminada exitosamente', 'success');
       fetchTasks(userId, filterCategoria);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showToast('Error: ' + (err.response?.data?.error || err.message), 'error');
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error ? err.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 
-  const handleEdit = async (taskData: any) => {
+  const handleEdit = async (taskData: TaskFormData) => {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) {
@@ -104,9 +117,12 @@ export default function TareasPage() {
       showToast(res.data.message || 'Tarea actualizada exitosamente', 'success');
       setEditingTask(null);
       fetchTasks(userId, filterCategoria);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showToast('Error: ' + (err.response?.data?.error || err.message), 'error');
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error ? err.message : 'Error inesperado';
+      showToast('Error: ' + message, 'error');
     }
   };
 
@@ -139,7 +155,7 @@ export default function TareasPage() {
 
       <div className="task-list">
         {
-          tasks.map((t: any) => (
+          tasks.map((t) => (
             <div key={t.id} className="task-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <div>
                 <div className="task-title">{t.titulo}</div>
@@ -162,6 +178,7 @@ export default function TareasPage() {
       </div>
 
       <EditTaskModal
+        key={editingTask?.id ?? 'new'}
         task={editingTask}
         categorias={categorias}
         isOpen={!!editingTask}
@@ -184,4 +201,3 @@ export default function TareasPage() {
     </div>
   );
 }
-

@@ -11,9 +11,12 @@ export default function AuthGuard({ children }) {
   useEffect(() => {
     // Resetear el flag cuando cambia la ruta
     hasRedirected.current = false;
+    // Authentication is read from browser storage after navigation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     if (typeof window === 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
@@ -30,6 +33,7 @@ export default function AuthGuard({ children }) {
         router.replace('/tareas');
         return;
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
@@ -41,13 +45,15 @@ export default function AuthGuard({ children }) {
     if (!userId && !publicPaths.includes(pathname) && !hasRedirected.current) {
       hasRedirected.current = true;
       router.replace('/');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
 
     // Si todo está bien, permitir renderizar
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
-  }, [pathname]); // Solo pathname como dependencia, no router
+  }, [pathname, router]);
 
   // Si es la ruta de login (/ o /login), renderizar inmediatamente después de la verificación
   if (pathname === '/' || pathname === '/login') {
